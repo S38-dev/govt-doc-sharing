@@ -1,17 +1,30 @@
 const nodemailer = require('nodemailer');
+const path = require('path');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-  service:'gmail', // e.g., 'smtp.gmail.com'
- 
-  
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
   }
 });
 
-exports.sendShareNotification = async (senderName, recipientEmail, documentTitle, permissions) => {
+/**
+ * Send a notification email when a document is shared.
+ * @param {string} senderName - Name of the user sharing the document.
+ * @param {string} recipientEmail - Email address to send notification to.
+ * @param {string} documentTitle - Title of the document.
+ * @param {string|string[]} permissions - Permissions granted.
+ * @param {string} documentPath - Absolute file path to attach.
+ */
+exports.sendShareNotification = async (
+  senderName,
+  recipientEmail,
+  documentTitle,
+  permissions,
+  documentPath
+) => {
   try {
     const mailOptions = {
       from: `"Document Sharing" <${process.env.EMAIL_USER}>`,
@@ -22,10 +35,16 @@ exports.sendShareNotification = async (senderName, recipientEmail, documentTitle
         <p><strong>${senderName}</strong> has shared a document with you:</p>
         <ul>
           <li><strong>Document Title:</strong> ${documentTitle}</li>
-          <li><strong>Permissions:</strong> ${permissions}</li>
+          <li><strong>Permissions:</strong> ${Array.isArray(permissions) ? permissions.join(', ') : permissions}</li>
         </ul>
-        <p>Access your shared documents: <a href="${process.env.APP_URL}/documents">View Documents</a></p>
-      `
+        <p>Please find the document attached.</p>
+      `,
+      attachments: [
+        {
+          filename: `${documentTitle}${path.extname(documentPath) || ''}`,
+          path: documentPath
+        }
+      ]
     };
 
     await transporter.sendMail(mailOptions);

@@ -1,32 +1,25 @@
+// routes/documentRoutes.js
 const express = require('express');
 const router = express.Router();
-
 const path = require('path');
-
+const fs = require('fs');
 const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const { 
-  uploadDocument, 
-  shareDocument,
-  getDocuments,
-  deleteDocument
-} = require('../controllers/documentController');
-const {db }= require('../config/db'); // Add database connection
-const authRoutes = require('./authRoutes.js');
-router.use('/auth', authRoutes);
+const upload = require('../middleware/upload'); // Import the upload middleware
+const { db } = require('../config/db');
+const { sendShareNotification } = require('../services/emailService'); // Import email service
+
+
+
 // Document Dashboard (Protected)
 router.get('/documents', auth, async (req, res) => {
-  
   try {
-    // Get user's own documents
     const userDocuments = await db.query(
       'SELECT * FROM documents WHERE user_id = $1',
       [req.user.id]
     );
-    
-    // Get shared documents
+
     const sharedDocuments = await db.query(
-      `SELECT d.*, u.name as owner_name 
+      `SELECT d.*, u.name as owner_name
        FROM documents d
        JOIN document_shares ds ON d.id = ds.document_id
        JOIN users u ON d.user_id = u.id
@@ -34,7 +27,7 @@ router.get('/documents', auth, async (req, res) => {
       [req.user.id]
     );
 
-    res.render('documents/index', {
+    res.render('documents/index', { // Assuming you have a view named 'documents/index'
       documents: [
         ...userDocuments.rows.map(d => ({ ...d, owner: 'You' })),
         ...sharedDocuments.rows
@@ -42,45 +35,59 @@ router.get('/documents', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Document dashboard error:', error);
-    res.redirect('/login');
+    res.redirect('/login'); // Redirect to login on error, or handle as appropriate
   }
 });
 
 // Upload Document (Protected)
-// Upload Document (Protected)
 router.post('/upload', auth, upload.single('document'), async (req, res) => {
   try {
+    if (!req.file) {
+      // IMPORTANT: Handle the case where no file is sent.
+      return res.status(400).render('documents/index', {  // use render
+        documents: [],
+        error: 'No file uploaded. Please select a file to upload.',
+        prevInput: req.body
+      });
+    }
+
     const { title, description, document_type } = req.body;
-    const filePath = path.join('uploads', req.file.filename);
+    const filePath = `/uploads/${req.file.filename}`; // Store relative path
 
     await db.query(
       'INSERT INTO documents (user_id, title, description, file_path, document_type) VALUES ($1, $2, $3, $4, $5)',
       [req.user.id, title, description, filePath, document_type]
     );
 
-    res.redirect('/documents');
+    res.redirect('/documents'); // Redirect to the documents dashboard
   } catch (error) {
     console.error('Upload document error:', error);
-    res.redirect('/documents');
+    let message = 'An error occurred during upload.';
+    if (error instanceof multer.MulterError) {
+      message = 'File upload error: ' + error.message;
+    } else if (error.message === 'Invalid file type. Allowed types are pdf, doc, docx, jpg, png.') {
+      message = error.message;
+    }
+    res.status(500).render('documents/index', {  // use render
+      documents: [],
+      error: message,
+      prevInput: req.body
+    });
   }
 });
 
 // Share Document (Protected)
-// In your documentRoutes.js
-const { sendShareNotification } = require('../services/emailService');
-
 router.post('/share', auth, async (req, res) => {
   try {
     const { document_id, shared_with, permissions, expiry_date } = req.body;
-    
-    // 1. Get recipient user ID from email
+
     const userRes = await db.query(
       'SELECT id FROM users WHERE email = $1',
       [shared_with]
     );
-    
+
     if (userRes.rows.length === 0) {
-      return res.render('documents/share', {
+      return res.status(400).render('documents/share', { // use render
         document: { id: document_id },
         shares: [],
         error: 'User with this email not found',
@@ -90,39 +97,44 @@ router.post('/share', auth, async (req, res) => {
 
     const sharedWithUserId = userRes.rows[0].id;
 
-    // 2. Create share record
- // Update the INSERT query in routes/documentRoutes.js
-await db.query(
-  `INSERT INTO document_shares 
-   (document_id, shared_by, shared_with, permissions, expiry_date)
-   VALUES ($1, $2, $3, $4::TEXT[], $5)`,
-  [
-    document_id,
-    req.user.id,
-    sharedWithUserId,
-    Array.isArray(permissions) ? permissions : [permissions],
-    expiry_date
-  ]
-);                                                                                                
+    await db.query(
+      `INSERT INTO document_shares (document_id, shared_by, shared_with, permissions, expiry_date)
+       VALUES ($1, $2, $3, $4::TEXT[], $5)`,
+      [document_id, req.user.id, sharedWithUserId, Array.isArray(permissions) ? permissions : [permissions], expiry_date]
+    );
 
-    // 3. Get document details for email
+    // Get document details for email notification
     const docRes = await db.query(
-      'SELECT title FROM documents WHERE id = $1',
+      'SELECT title, file_path FROM documents WHERE id = $1',
       [document_id]
     );
 
-    // 4. Send email notification
-    await sendShareNotification(
-      req.user.name,
-      shared_with,
-      docRes.rows[0].title,
-      permissions
-    );
+    // Construct the absolute path to the file
+    const absolutePath = path.join(__dirname, '../public', docRes.rows[0].file_path);
+
+    // Send email notification
+    try {
+      await sendShareNotification(
+        req.user.name,
+        shared_with,
+        docRes.rows[0].title,
+        permissions,
+        absolutePath
+      );
+    } catch (e) {
+      console.error("Error sending email: ", e); // Log the error
+      return res.status(500).render('documents/share', {  // use render
+        document: { id: document_id },
+        shares: [],
+        error: 'Sharing failed. ' + e.message,
+        prevInput: req.body
+      });
+    }
 
     res.redirect(`/documents/share/${document_id}`);
   } catch (error) {
     console.error('Share error:', error);
-    res.render('documents/share', {
+    return res.status(500).render('documents/share', {  // use render
       document: { id: req.body.document_id },
       shares: [],
       error: 'Sharing failed. ' + error.message,
@@ -136,14 +148,22 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const documentId = req.params.id;
 
-    // Verify ownership
     const docRes = await db.query(
-      'SELECT id FROM documents WHERE id = $1 AND user_id = $2',
+      'SELECT id, file_path FROM documents WHERE id = $1 AND user_id = $2', // Include file_path
       [documentId, req.user.id]
     );
+
     if (!docRes.rows.length) {
       return res.status(404).redirect('/documents');
     }
+    // Delete the file from the filesystem
+    const filePath = path.join(__dirname, '../public', docRes.rows[0].file_path); // Construct full path
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Error deleting file:', err);
+        // Log the error, but continue with database deletion (optional: you might want to fail the whole operation)
+      }
+    });
 
     // Delete shares and audit logs
     await db.query('DELETE FROM document_shares WHERE document_id = $1', [documentId]);
@@ -158,12 +178,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).redirect('/documents');
   }
 });
-
-// Document Dashboard (Protected)
-// routes/documentRoutes.js
-
 // Get documents dashboard
-// routes/documentRoutes.js
 router.get('/', auth, async (req, res) => {
   try {
     // Get user's documents
@@ -174,7 +189,7 @@ router.get('/', auth, async (req, res) => {
 
     // Get shared documents
     const sharedDocuments = await db.query(
-      `SELECT d.*, u.name as owner_name 
+      `SELECT d.*, u.name as owner_name
        FROM documents d
        JOIN document_shares ds ON d.id = ds.document_id
        JOIN users u ON d.user_id = u.id
@@ -188,52 +203,53 @@ router.get('/', auth, async (req, res) => {
         ...sharedDocuments.rows
       ]
     });
-    
+
   } catch (error) {
     console.error('Document dashboard error:', error);
     res.redirect('/login');
   }
 });
-// In your documentRoutes.js
+
 router.get('/share/:id', auth, async (req, res) => {
-    try {
-        const documentId = req.params.id;
-        
-        // Verify document ownership
-        const docRes = await db.query(
-            'SELECT * FROM documents WHERE id = $1 AND user_id = $2',
-            [documentId, req.user.id]
-        );
-        
-        if (!docRes.rows.length) {
-            return res.redirect('/documents');
-        }
+  try {
+    const documentId = req.params.id;
 
-        // Get existing shares
-        const sharesRes = await db.query(
-            `SELECT s.*, u.email as shared_with_email 
-             FROM document_shares s
-             JOIN users u ON s.shared_with = u.id
-             WHERE document_id = $1`,
-            [documentId]
-        );
+    // Verify document ownership
+    const docRes = await db.query(
+      'SELECT * FROM documents WHERE id = $1 AND user_id = $2',
+      [documentId, req.user.id]
+    );
 
-        res.render('documents/share', {
-            document: docRes.rows[0],
-            shares: sharesRes.rows,
-            error: null,
-            prevInput: {}
-        });
-
-    } catch (error) {
-        console.error('Share page error:', error);
-        res.redirect('/documents');
+    if (!docRes.rows.length) {
+      return res.redirect('/documents');
     }
+
+    // Get existing shares
+    const sharesRes = await db.query(
+      `SELECT s.*, u.email as shared_with_email
+       FROM document_shares s
+       JOIN users u ON s.shared_with = u.id
+       WHERE document_id = $1`,
+      [documentId]
+    );
+
+    res.render('documents/share', {
+      document: docRes.rows[0],
+      shares: sharesRes.rows,
+      error: null,
+      prevInput: {}
+    });
+
+  } catch (error) {
+    console.error('Share page error:', error);
+    res.redirect('/documents');
+  }
 });
+
 router.get('/shared/:shareId', auth, async (req, res) => {
   try {
     const share = await db.query(
-      `SELECT d.*, ds.permissions 
+      `SELECT d.*, ds.permissions
        FROM document_shares ds
        JOIN documents d ON ds.document_id = d.id
        WHERE ds.id = $1 AND ds.shared_with = $2
@@ -245,7 +261,7 @@ router.get('/shared/:shareId', auth, async (req, res) => {
       return res.status(403).send('Access denied or share expired');
     }
 
-    res.render('documents/view', {
+    res.render('documents/view', {  // Create a new view for viewing shared documents if needed
       document: share.rows[0]
     });
   } catch (error) {
@@ -253,4 +269,5 @@ router.get('/shared/:shareId', auth, async (req, res) => {
     res.redirect('/documents');
   }
 });
+
 module.exports = router;
