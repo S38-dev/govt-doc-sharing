@@ -27,19 +27,7 @@
     </style>
 </head>
 <body>
-    <nav>
-        <a href="/" class="nav-brand">SecureDoc</a>
-        <div class="nav-links">
-            <% if (typeof user !== 'undefined' && user) { %>
-                <a href="/documents" class="nav-link">My Documents</a>
-                <a href="/users/profile" class="nav-link">Profile</a>
-                <a href="/logout" class="nav-link">Logout</a>
-            <% } else { %>
-                <a href="/login" class="nav-link">Login</a>
-                <a href="/register" class="nav-link">Register</a>
-            <% } %>
-        </div>
-    </nav>
+
 
     <div class="container">
         <div class="hero">
@@ -50,17 +38,17 @@
                 <div class="feature-card">
                     <h3>Upload Documents</h3>
                     <p>Securely store your important files</p>
-                    <a href="/auth-check?redirect=/documents/upload" class="btn">Upload Now</a>
+                  
                 </div>
                 <div class="feature-card">
                     <h3>Shared Documents</h3>
                     <p>Access documents shared with you</p>
-                    <a href="/auth-check?redirect=/documents" class="btn">View Shared</a>
+                   
                 </div>
                 <div class="feature-card">
                     <h3>Manage Profile</h3>
                     <p>Update your account information</p>
-                    <a href="/auth-check?redirect=/users/profile" class="btn">Edit Profile</a>
+                    
                 </div>
             </div>
         </div>
