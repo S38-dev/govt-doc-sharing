@@ -1,0 +1,85 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Share Document: <%= document.title %></h2>
+
+    <!-- Sharing Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <% if (error) { %>
+                <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+
+            <form action="/documents/share" method="POST">
+                <input type="hidden" name="document_id" value="<%= document.id %>">
+                
+                <div class="mb-3">
+                    <label class="form-label">Share with (Email)</label>
+                    <input type="email" name="shared_with" class="form-control" 
+                           value="<%= prevInput.shared_with || '' %>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Permissions</label>
+                    <select name="permissions" class="form-select" required>
+                        <option value="view" <%= prevInput.permissions === 'view' ? 'selected' : '' %>>View Only</option>
+                        <option value="edit" <%= prevInput.permissions === 'edit' ? 'selected' : '' %>>Edit</option>
+                        <option value="download" <%= prevInput.permissions === 'download' ? 'selected' : '' %>>Download</option>
+                        <option value="full" <%= prevInput.permissions === 'full' ? 'selected' : '' %>>Full Access</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Expiry Date (optional)</label>
+                    <input type="date" name="expiry_date" class="form-control" 
+                           value="<%= prevInput.expiry_date || '' %>">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Share Document</button>
+                <a href="/documents" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing Shares -->
+    <div class="card">
+        <div class="card-header">Active Shares</div>
+        <div class="card-body">
+            <% if (shares.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Shared With</th>
+                            <th>Permissions</th>
+                            <th>Expires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% shares.forEach(share => { %>
+                            <tr>
+                                <td><%= share.shared_with_email %></td>
+                                <td><%= share.permissions %></td>
+                                <td>
+                                    <%= share.expiry_date ? 
+                                        new Date(share.expiry_date).toLocaleDateString() : 
+                                        'No expiry' %>
+                                </td>
+                                <td>
+                                    <form action="/documents/share/revoke" method="POST">
+                                        <input type="hidden" name="share_id" value="<%= share.id %>">
+                                        <button type="submit" class="btn btn-sm btn-danger">Revoke</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="text-muted">No active shares for this document</p>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

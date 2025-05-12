@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        .error { color: red; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        input { width: 100%; padding: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Register</h1>
+    <% if (typeof error !== 'undefined') { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+    <form method="POST">
+        <div class="form-group">
+            <input type="text" name="name" placeholder="Full Name" 
+                   value="<%= typeof prevInput !== 'undefined' ? prevInput.name : '' %>" required>
+        </div>
+        <div class="form-group">
+            <input type="email" name="email" placeholder="Email"
+                   value="<%= typeof prevInput !== 'undefined' ? prevInput.email : '' %>" required>
+        </div>
+        <div class="form-group">
+            <input type="password" name="password" placeholder="Password" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="aadhaar_number" placeholder="Aadhaar Number"
+                   value="<%= typeof prevInput !== 'undefined' ? prevInput.aadhaar_number : '' %>" 
+                   pattern="\d{12}" title="12-digit Aadhaar number" required>
+        </div>
+        <button type="submit">Register</button>
+    </form>
+    <p>Already have an account? <a href="/login">Login here</a></p>
+</body>
+</html>

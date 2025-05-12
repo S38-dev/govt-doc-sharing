@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Documents</title>
+</head>
+<body>
+    <h1>My Documents</h1>
+    
+    <form action="/documents/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="document" required>
+        <input type="text" name="title" placeholder="Title" required>
+        <select name="document_type" required>
+            <option value="ID Proof">ID Proof</option>
+            <option value="Address Proof">Address Proof</option>
+            <option value="Certificate">Certificate</option>
+            <option value="Other">Other</option>
+        </select>
+        <button type="submit">Upload</button>
+    </form>
+
+    <h2>Shared Documents</h2>
+    <% documents.forEach(doc => { %>
+        <div>
+            <h3><%= doc.title %></h3>
+            <p><%= doc.description %></p>
+            <a href="/documents/share/<%= doc.id %>">Share</a>
+        </div>
+    <% }); %>
+</body>
+</html>

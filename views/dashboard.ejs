@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+    <div class="container">
+        <h2>My Documents</h2>
+        
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <input type="file" id="documentUpload" hidden>
+            <button class="btn-upload" onclick="document.getElementById('documentUpload').click()">
+                Upload Document
+            </button>
+        </div>
+
+        <!-- Document List -->
+        <div class="document-grid">
+            <% documents.forEach(doc => { %>
+                <div class="document-card">
+                    <div class="doc-icon">📄</div>
+                    <h3><%= doc.title %></h3>
+                    <p><%= doc.type %></p>
+                    <div class="doc-actions">
+                        <button class="btn-share" data-id="<%= doc.id %>">Share</button>
+                        <button class="btn-delete" data-id="<%= doc.id %>">Delete</button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+<%- include('../partials/footer') %>
