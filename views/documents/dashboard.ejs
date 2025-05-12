@@ -55,25 +55,7 @@
     <% }) %>
   </div>
 
-  <h2>Documents Shared With Me</h2>
-  <div class="doc-list">
-    <% documents.filter(d => d.owner_name && d.owner_name !== 'You').forEach(doc => { %>
-      <div class="doc-item">
-        <h3><%= doc.title %> <small>by <%= doc.owner_name %></small></h3>
-        <div class="doc-preview">
-          <% if (doc.file_path.endsWith('.pdf')) { %>
-            <embed src="<%= doc.file_path %>" type="application/pdf" />
-          <% } else if (['.jpg','.jpeg','.png'].some(ext => doc.file_path.toLowerCase().endsWith(ext))) { %>
-            <img src="<%= doc.file_path %>" alt="<%= doc.title %>" />
-          <% } else { %>
-            <p>No preview available</p>
-          <% } %>
-        </div>
-        <div class="actions">
-          <a class="button" href="<%= doc.file_path %>" download>Download</a>
-        </div>
-      </div>
-    <% }) %>
+  
   </div>
 </body>
 </html>

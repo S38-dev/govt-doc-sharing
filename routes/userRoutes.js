@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
 const {
   getProfile,
@@ -8,7 +9,8 @@ const {
   getAuditLogs,
   getSharedDocuments
 } = require('../controllers/userController');
-
+const { db }  = require('../config/db');
+const { sendShareNotification, sendOTPEmail } = require('../services/emailService');
 // GET /users/profile
 router.get('/profile', auth, async (req, res) => {
   try {
@@ -16,15 +18,22 @@ router.get('/profile', auth, async (req, res) => {
       'SELECT id, name, email, aadhaar_number, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
+    
     if (!rows.length) {
       return res.status(404).render('error', { error: 'User not found' });
     }
-    res.render('profile', { user: rows[0] });
+    
+    res.render('users/profile', {  // Update view path
+      user: rows[0],
+      message: null  // Initialize message
+    });
+    
   } catch (err) {
     console.error('Get profile error:', err);
     res.status(500).render('error', { error: 'Failed to get profile' });
   }
 });
+
 
 // PUT /users/profile
 router.put('/profile', auth, async (req, res) => {
@@ -45,6 +54,23 @@ router.put('/profile', auth, async (req, res) => {
   } catch (err) {
     console.error('Update profile error:', err);
     res.status(500).render('error', { error: 'Failed to update profile' });
+  }
+});
+router.get('/change-password', auth, async (req, res) => {
+  try {
+    // Get fresh user data
+    const { rows } = await db.query(
+      'SELECT id, email FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    
+    res.render('users/initiate-password-change', {
+      user: rows[0],
+      error: null
+    });
+  } catch (error) {
+    console.error('Password change init error:', error);
+    res.redirect('/users/profile');
   }
 });
 
@@ -74,7 +100,52 @@ router.put('/change-password', auth, async (req, res) => {
     res.status(500).render('error', { error: 'Failed to change password' });
   }
 });
+// Add this route above the POST /verify-otp
+router.get('/verify-otp', auth, (req, res) => {
+  res.render('users/verify-otp', {
+    error: null,
+    user: req.user  // Pass user to the view
+  });
+});
+router.post('/verify-otp', auth, async (req, res) => {
+  const { otp, newPassword } = req.body;
+  const storedOtp = req.app.locals.otp;
 
+  try {
+    // Validate OTP
+    if (!storedOtp || storedOtp.expires < Date.now()) {
+      return res.render('users/verify-otp', {
+        error: 'OTP expired. Please request new OTP.'
+      });
+    }
+
+    if (otp !== storedOtp.code) {
+      return res.render('users/verify-otp', {
+        error: 'Invalid OTP. Please try again.'
+      });
+    }
+
+    // Update password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.query(
+      'UPDATE users SET password = $1 WHERE id = $2',
+      [hashedPassword, storedOtp.userId]
+    );
+
+    // Clear OTP
+    delete req.app.locals.otp;
+    
+    res.render('users/profile', {
+      user: req.user,
+      message: 'Password changed successfully!'
+    });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.render('users/verify-otp', {
+      error: 'Password change failed. Please try again.'
+    });
+  }
+});
 // GET /users/audit-logs
 router.get('/audit-logs', auth, async (req, res) => {
   try {
@@ -113,7 +184,39 @@ router.get('/shared-documents', auth, async (req, res) => {
     res.status(500).render('error', { error: 'Failed to retrieve shared documents' });
   }
 });
+// Add this route in userRoutes.js
+router.post('/send-otp', auth, async (req, res) => {
+  try {
+    // Get fresh user data
+    const { rows } = await db.query(
+      'SELECT id, email FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    
+    const user = rows[0];
+    
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 300000; // 5 minutes
 
+    // Store OTP in app locals
+    req.app.locals.otp = {
+      code: otp,
+      expires: expiresAt,
+      userId: user.id
+    };
+
+    // Send OTP via email
+    await sendOTPEmail(user.email, otp);
+
+    res.redirect('/users/verify-otp');
+  } catch (error) {
+    console.error('OTP send error:', error);
+    res.render('users/initiate-password-change', {
+      user: req.user,
+      error: 'Failed to send OTP. Please try again.'
+    });
+  }
+});
 module.exports = router;
 
-module.exports = router;

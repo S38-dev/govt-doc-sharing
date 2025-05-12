@@ -143,6 +143,6 @@ router.post('/login', async (req, res) => {
 // routes/authRoutes.js
 router.get('/logout', (req, res) => {
   res.clearCookie('jwt');
-  res.redirect('/login');
+  res.redirect('/');
 });
 module.exports = router;

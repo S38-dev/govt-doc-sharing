@@ -1,0 +1,44 @@
+<%- include('../partials/header', { title: 'User Profile' }) %>
+
+  <div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>User Profile</h2>
+        </div>
+        <div class="card-body">
+            <% if (typeof message !== 'undefined' && message) { %>
+                <div class="alert alert-success"><%= message %></div>
+            <% } %>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Name:</dt>
+                    <dd class="col-sm-9">
+                        <%= user.name %>
+                    </dd>
+
+                    <dt class="col-sm-3">Email:</dt>
+                    <dd class="col-sm-9">
+                        <%= user.email %>
+                    </dd>
+
+                    <dt class="col-sm-3">Aadhaar Number:</dt>
+                    <dd class="col-sm-9">
+                        <%= user.aadhaar_number %>
+                    </dd>
+
+                    <dt class="col-sm-3">Registered Since:</dt>
+                    <dd class="col-sm-9">
+                        <%= new Date(user.created_at).toLocaleDateString() %>
+                    </dd>
+                </dl>
+
+                <div class="mt-4">
+                    <div class="mt-4">
+                        <a href="/users/change-password" class="btn btn-primary">
+                    Change Password
+                </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

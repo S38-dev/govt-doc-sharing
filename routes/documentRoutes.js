@@ -14,32 +14,28 @@ const router = express.Router();
  */
 router.get('/', auth, async (req, res) => {
   try {
+    // Get only user's own documents
     const userDocs = await db.query(
       `SELECT id, title, description, file_path, document_type, created_at
        FROM documents WHERE user_id = $1`,
       [req.user.id]
     );
-    const sharedDocs = await db.query(
-      `SELECT d.id, d.title, d.description, d.file_path, d.document_type, d.created_at, u.name AS owner_name
-       FROM documents d
-       JOIN document_shares ds ON ds.document_id = d.id
-       JOIN users u ON u.id = d.user_id
-       WHERE ds.shared_with = $1`,
-      [req.user.id]
-    );
-     res.render('documents/dashboard', {
-      documents: [
-        ...userDocs.rows.map(d => ({ ...d, owner_name: 'You' })),
-        ...sharedDocs.rows
-      ],
-      user: req.user, // Add this line to pass user data
+
+    res.render('documents/dashboard', {
+      documents: userDocs.rows.map(d => ({ 
+        ...d, 
+        owner_name: 'You' 
+      })),
+      user: req.user,
       error: null
     });
+    
   } catch (err) {
     console.error('Dashboard error:', err);
     res.redirect('/');
   }
 });
+
 
 /**
  * GET /documents/upload

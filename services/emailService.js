@@ -53,3 +53,23 @@ exports.sendShareNotification = async (
     throw new Error('Failed to send notification email');
   }
 };
+exports.sendOTPEmail = async (email, otp) => {
+  try {
+    const mailOptions = {
+      from: `"SecureDoc" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Password Change OTP',
+      html: `
+        <h3>Password Change Request</h3>
+        <p>Your OTP for password change is: <strong>${otp}</strong></p>
+        <p>This OTP is valid for 5 minutes.</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Email send error:', error);
+    return false;
+  }
+};
