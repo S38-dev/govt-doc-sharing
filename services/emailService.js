@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
 require('dotenv').config();
-
+const fs = require('fs');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -18,14 +18,22 @@ const transporter = nodemailer.createTransport({
  * @param {string|string[]} permissions - Permissions granted.
  * @param {string} documentPath - Absolute file path to attach.
  */
-exports.sendShareNotification = async (
-  senderName,
-  recipientEmail,
-  documentTitle,
-  permissions,
-  documentPath
-) => {
+
+
+// Verify connection on startup
+transporter.verify((error) => {
+  if (error) {
+    console.error('Mail server connection error:', error);
+  } else {
+    console.log('📧 Mail server ready to send emails');
+  }
+});
+
+exports.sendShareNotification = async (senderName, recipientEmail, documentTitle, permissions, documentPath) => {
   try {
+    // Validate file exists before attaching
+    await fs.promises.access(documentPath, fs.constants.R_OK);
+
     const mailOptions = {
       from: `"Document Sharing" <${process.env.EMAIL_USER}>`,
       to: recipientEmail,
@@ -37,20 +45,20 @@ exports.sendShareNotification = async (
           <li><strong>Document Title:</strong> ${documentTitle}</li>
           <li><strong>Permissions:</strong> ${Array.isArray(permissions) ? permissions.join(', ') : permissions}</li>
         </ul>
-        <p>Please find the document attached.</p>
+        <p>The document is attached to this email.</p>
       `,
-      attachments: [
-        {
-          filename: `${documentTitle}${path.extname(documentPath) || ''}`,
-          path: documentPath
-        }
-      ]
+      attachments: [{
+        filename: `${documentTitle}${path.extname(documentPath)}`,
+        path: documentPath
+      }]
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('📨 Email sent:', info.messageId);
+    return true;
   } catch (error) {
-    console.error('Email send error:', error);
-    throw new Error('Failed to send notification email');
+    console.error('📧 Email send error:', error);
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 };
 exports.sendOTPEmail = async (email, otp) => {
