@@ -20,7 +20,9 @@
  <nav>
     <a href="/" class="nav-brand">SecureDoc</a>
     <div class="nav-links">
-        <% if (typeof user !== 'undefined' && user) { %>
+        <% console.log("user at front",locals.user) %>
+        <% if (typeof  locals.user!== 'undefined' &&  locals.user) { %>
+
             <a href="/documents" class="nav-link">My Documents</a>
             <a href="/users/profile" class="nav-link">Profile</a>
             <a href="/users/change-password" class="nav-link">Change Password</a>
