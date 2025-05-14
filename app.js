@@ -4,7 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const { db, connectDB } = require('./config/db');
 const routes = require('./routes');
-
+const methodOverride = require('method-override');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
+app.use(methodOverride('_method'));
 // Routes
 routes(app);
 

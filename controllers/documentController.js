@@ -134,7 +134,7 @@ exports.handleShare = async (req, res) => {
       res.redirect('/documents');
     }
   }
-};
+}; 
 
 exports.deleteDocument = async (req, res) => {
   const docId = req.params.id;
@@ -153,4 +153,4 @@ exports.deleteDocument = async (req, res) => {
     console.error('Delete error:', err);
     res.redirect('/documents');
   }
-};
+}; 

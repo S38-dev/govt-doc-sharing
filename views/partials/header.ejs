@@ -17,19 +17,20 @@
         }
 </style>
 <body>
-     <nav>
+ <nav>
     <a href="/" class="nav-brand">SecureDoc</a>
-   <div class="nav-links">
-    <% if (typeof user !== 'undefined' && user) { %>
-        <a href="/documents" class="nav-link">My Documents</a>
-        <a href="/users/profile" class="nav-link">Profile</a>
-        <a href="/users/change-password" class="nav-link">Change Password</a>
-        <a href="/logout" class="nav-link">Logout</a>
-    <% } else { %>
-        <a href="/login" class="nav-link">Login</a>
-        <a href="/register" class="nav-link">Register</a>
-    <% } %>
-</div>
+    <div class="nav-links">
+        <% if (typeof user !== 'undefined' && user) { %>
+            <a href="/documents" class="nav-link">My Documents</a>
+            <a href="/users/profile" class="nav-link">Profile</a>
+            <a href="/users/change-password" class="nav-link">Change Password</a>
+            <a href="/logout" class="nav-link">Logout</a>
+        <% } else { %>
+            <a href="/login" class="nav-link">Login</a>
+            <a href="/register" class="nav-link">Register</a>
+        <% } %>
+    </div>
 </nav>
+
 </body>
 </html>
