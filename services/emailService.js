@@ -67,11 +67,18 @@ exports.sendOTPEmail = async (email, otp) => {
     const mailOptions = {
       from: `"SecureDoc" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Password Change OTP',
+      subject: 'Password Reset OTP',
       html: `
-        <h3>Password Change Request</h3>
-        <p>Your OTP for password change is: <strong>${otp}</strong></p>
-        <p>This OTP is valid for 5 minutes.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1877f2;">Password Reset Request</h2>
+          <p>We received a request to reset your password. Your OTP is:</p>
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0;">
+            <h3 style="margin: 0; letter-spacing: 3px;"><code>${otp}</code></h3>
+          </div>
+          <p>This OTP will expire in 5 minutes. If you didn't request this, please ignore this email.</p>
+          <hr style="border: 1px solid #ddd;">
+          <p style="color: #666; font-size: 0.9em;">SecureDoc Team</p>
+        </div>
       `
     };
 

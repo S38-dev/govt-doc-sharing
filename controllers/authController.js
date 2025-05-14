@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/db');
-
+const { sendOTPEmail } = require('../services/emailService');
+const otpStore = require('../services/otpStore');
 exports.register = async (req, res) => {
   // Existing register logic from authRoutes
   console.log('Registration attempt started');
@@ -122,6 +123,89 @@ exports.login = async (req, res) => {
        prevInput: req.body || {}
      });
    }
+};
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // 1. Check if user exists
+    const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (!user.rows.length) {
+      return res.render('auth/forgot-password', {
+        error: 'No account found with that email',
+        prevInput: { email }
+      });
+    }
+
+    // 2. Generate and store OTP
+    const otp = otpStore.generateOTP(email);
+    
+    // 3. Send OTP email
+    await sendOTPEmail(email, otp);
+
+    res.render('auth/reset-password', {
+      email,
+      error: null,
+      success: 'OTP sent to your email!'
+    });
+    
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.render('auth/forgot-password', {
+      error: 'Failed to process request. Please try again.',
+      prevInput: req.body
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password, confirmPassword } = req.body;
+
+    // 1. Validate inputs
+    if (password !== confirmPassword) {
+      return res.render('auth/reset-password', {
+        email,
+        error: 'Passwords do not match',
+        success: null
+      });
+    }
+
+    // 2. Verify OTP
+    if (!otpStore.verifyOTP(email, otp)) {
+      return res.render('auth/reset-password', {
+        email,
+        error: 'Invalid or expired OTP',
+        success: null
+      });
+    }
+
+    // 3. Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. Update password in database
+    await db.query('UPDATE users SET password = $1 WHERE email = $2', [
+      hashedPassword,
+      email
+    ]);
+
+    // 5. Clear OTP
+    otpStore.cleanup();
+
+    res.render('auth/login', {
+      success: 'Password updated successfully! Please login',
+      error: null,
+      prevInput: { email }
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.render('auth/reset-password', {
+      email: req.body.email,
+      error: 'Failed to reset password. Please try again.',
+      success: null
+    });
+  }
 };
 
 exports.logout = (req, res) => {
