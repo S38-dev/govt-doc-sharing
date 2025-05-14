@@ -1,10 +1,161 @@
 <%- include('../partials/header') %>
 
-<div class="container mt-5">
-    <h2 class="mb-4">Share Document: <%= document.title %></h2>
+<style>
+    :root {
+        --primary: #3498db;
+        --secondary: #95a5a6;
+        --success: #2ecc71;
+        --danger: #e74c3c;
+        --light: #ecf0f1;
+        --dark: #2c3e50;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: var(--light);
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        border-bottom: 2px solid #dfe6e9;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+    }
+
+    .alert-danger {
+        background: #fee;
+        color: var(--danger);
+        border: 1px solid #ffd6d6;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #bdc3c7;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #2980b9;
+    }
+
+    .btn-secondary {
+        background: var(--secondary);
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #dfe6e9;
+    }
+
+    .table th {
+        background: var(--light);
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .text-muted {
+        color: #95a5a6;
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 0.5rem;
+            margin: 1rem auto;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+</style>
+
+<div class="container">
+    <h2 class="heading">Share Document: <%= document.title %></h2>
 
     <!-- Sharing Form -->
-    <div class="card mb-4">
+    <div class="card">
         <div class="card-body">
             <% if (error) { %>
                 <div class="alert alert-danger"><%= error %></div>
@@ -13,30 +164,16 @@
             <form action="/documents/share" method="POST">
                 <input type="hidden" name="document_id" value="<%= document.id %>">
                 
-                <div class="mb-3">
+                <div class="form-group">
                     <label class="form-label">Share with (Email)</label>
                     <input type="email" name="shared_with" class="form-control" 
                            value="<%= prevInput.shared_with || '' %>" required>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Permissions</label>
-                    <select name="permissions" class="form-select" required>
-                        <option value="view" <%= prevInput.permissions === 'view' ? 'selected' : '' %>>View Only</option>
-                        <option value="edit" <%= prevInput.permissions === 'edit' ? 'selected' : '' %>>Edit</option>
-                        <option value="download" <%= prevInput.permissions === 'download' ? 'selected' : '' %>>Download</option>
-                        <option value="full" <%= prevInput.permissions === 'full' ? 'selected' : '' %>>Full Access</option>
-                    </select>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">Share Document</button>
+                    <a href="/documents" class="btn btn-secondary">Cancel</a>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Expiry Date (optional)</label>
-                    <input type="date" name="expiry_date" class="form-control" 
-                           value="<%= prevInput.expiry_date || '' %>">
-                </div>
-
-                <button type="submit" class="btn btn-primary">Share Document</button>
-                <a href="/documents" class="btn btn-secondary">Cancel</a>
             </form>
         </div>
     </div>
@@ -50,26 +187,15 @@
                     <thead>
                         <tr>
                             <th>Shared With</th>
-                            <th>Permissions</th>
-                            <th>Expires</th>
-                            <th>Actions</th>
+                            
                         </tr>
                     </thead>
                     <tbody>
                         <% shares.forEach(share => { %>
                             <tr>
                                 <td><%= share.shared_with_email %></td>
-                                <td><%= share.permissions %></td>
-                                <td>
-                                    <%= share.expiry_date ? 
-                                        new Date(share.expiry_date).toLocaleDateString() : 
-                                        'No expiry' %>
-                                </td>
-                                <td>
-                                    <form action="/documents/share/revoke" method="POST">
-                                        <input type="hidden" name="share_id" value="<%= share.id %>">
-                                        <button type="submit" class="btn btn-sm btn-danger">Revoke</button>
-                                    </form>
+                                <td class="actions-cell">
+                                    <!-- Add action buttons here if needed -->
                                 </td>
                             </tr>
                         <% }) %>

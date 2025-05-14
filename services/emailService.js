@@ -29,6 +29,7 @@ transporter.verify((error) => {
   }
 });
 
+
 exports.sendShareNotification = async (senderName, recipientEmail, documentTitle, permissions, documentPath) => {
   try {
     // Validate file exists before attaching
