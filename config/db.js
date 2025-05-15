@@ -1,6 +1,6 @@
 const { Client } = require('pg');
 
-// Create client instance
+
 const client = new Client({
   user: '***REMOVED***',
   host: '***REMOVED***',
@@ -9,10 +9,10 @@ const client = new Client({
   port: 5432,
 });
 
-// Preserve original query method
+
 const originalQuery = client.query.bind(client);
 
-// Add enhanced query method with logging
+
 client.query = async (text, params) => {
   try {
     const start = Date.now();

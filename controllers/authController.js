@@ -4,7 +4,7 @@ const { db } = require('../config/db');
 const { sendOTPEmail } = require('../services/emailService');
 const otpStore = require('../services/otpStore');
 exports.register = async (req, res) => {
-  // Existing register logic from authRoutes
+  
   console.log('Registration attempt started');
     try {
       const { name, email, password, aadhaar_number } = req.body;
@@ -19,7 +19,7 @@ exports.register = async (req, res) => {
         });
       }
   
-      // Check existing user
+      
       console.log('Checking existing user...');
       const exists = await db.query(
         'SELECT id FROM users WHERE email = $1 OR aadhaar_number = $2',
@@ -34,11 +34,11 @@ exports.register = async (req, res) => {
         });
       }
   
-      // Hash password
+     
       console.log('Hashing password...');
       const hashedPassword = await bcrypt.hash(password, 10);
   
-      // Create user
+     
       console.log('Creating user...');
       const result = await db.query(
         `INSERT INTO users (name, email, password, aadhaar_number)
@@ -48,14 +48,14 @@ exports.register = async (req, res) => {
       );
       console.log('User created:', result.rows[0].id);
   
-      // Generate JWT
+      
       const token = jwt.sign(
         { userId: result.rows[0].id },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
   
-      // Set cookie
+      
       res.cookie('jwt', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production'
@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
   try {
      const { email, password } = req.body;
  
-     // 1. Find user
+   
      const userResult = await db.query(
        'SELECT * FROM users WHERE email = $1',
        [email]
@@ -92,7 +92,7 @@ exports.login = async (req, res) => {
  
      const user = userResult.rows[0];
  
-     // 2. Check password
+   
      const validPassword = await bcrypt.compare(password, user.password);
      if (!validPassword) {
        return res.render('auth/login', {
@@ -101,14 +101,14 @@ exports.login = async (req, res) => {
        });
      }
  
-     // 3. Generate JWT
+    
      const token = jwt.sign(
        { userId: user.id },
        process.env.JWT_SECRET,
        { expiresIn: '24h' }
      );
  
-     // 4. Set cookie
+    
      res.cookie('jwt', token, {
        httpOnly: true,
        secure: process.env.NODE_ENV === 'production'
@@ -128,7 +128,7 @@ exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     
-    // 1. Check if user exists
+ 
     const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (!user.rows.length) {
       return res.render('auth/forgot-password', {
@@ -137,10 +137,10 @@ exports.forgotPassword = async (req, res) => {
       });
     }
 
-    // 2. Generate and store OTP
+ 
     const otp = otpStore.generateOTP(email);
     
-    // 3. Send OTP email
+  
     await sendOTPEmail(email, otp);
 
     res.render('auth/reset-password', {

@@ -10,17 +10,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-/**
- * Send a notification email when a document is shared.
- * @param {string} senderName - Name of the user sharing the document.
- * @param {string} recipientEmail - Email address to send notification to.
- * @param {string} documentTitle - Title of the document.
- * @param {string|string[]} permissions - Permissions granted.
- * @param {string} documentPath - Absolute file path to attach.
- */
-
-
-// Verify connection on startup
 transporter.verify((error) => {
   if (error) {
     console.error('Mail server connection error:', error);
@@ -29,10 +18,8 @@ transporter.verify((error) => {
   }
 });
 
-
 exports.sendShareNotification = async (senderName, recipientEmail, documentTitle, permissions, documentPath) => {
   try {
-    // Validate file exists before attaching
     await fs.promises.access(documentPath, fs.constants.R_OK);
 
     const mailOptions = {
