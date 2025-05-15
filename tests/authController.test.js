@@ -10,7 +10,7 @@ const mockSign = jest.spyOn(require('jsonwebtoken'), 'sign');
 jest.mock('../config/db', () => ({ db: { query: mockQuery } }));
 jest.mock('../services/emailService', () => ({ sendOTPEmail: jest.fn() }));
 jest.mock('../services/otpStore', () => ({
-  generateOTP: jest.fn().mockReturnValue('***REMOVED***56'),
+  generateOTP: jest.fn().mockReturnValue('123456'),
   verifyOTP: jest.fn(),
   cleanup: jest.fn()
 }));
@@ -50,7 +50,7 @@ describe('Auth Controller', () => {
     });
 
     it('renders error when user exists', async () => {
-      const req = mockReq({ name: 'A', email: 'a@b.com', password: 'pass', aadhaar_number: '***REMOVED***56789012' });
+      const req = mockReq({ name: 'A', email: 'a@b.com', password: 'pass', aadhaar_number: '123456789012' });
       const res = mockRes();
       mockQuery.mockResolvedValueOnce({ rows: [ { id: 1 } ] });
 
@@ -62,7 +62,7 @@ describe('Auth Controller', () => {
     });
 
     it('creates user and redirects on success', async () => {
-      const req = mockReq({ name: 'A', email: 'a@b.com', password: 'pass', aadhaar_number: '***REMOVED***56789012' });
+      const req = mockReq({ name: 'A', email: 'a@b.com', password: 'pass', aadhaar_number: '123456789012' });
       const res = mockRes();
       mockQuery
         .mockResolvedValueOnce({ rows: [] })              // exists check
@@ -78,7 +78,7 @@ describe('Auth Controller', () => {
     });
 
     it('handles db error gracefully', async () => {
-      const req = mockReq({ name: 'A', email: 'a@b.com', password: 'pass', aadhaar_number: '***REMOVED***56789012' });
+      const req = mockReq({ name: 'A', email: 'a@b.com', password: 'pass', aadhaar_number: '123456789012' });
       const res = mockRes();
       mockQuery.mockRejectedValueOnce(new Error('DB failure'));
 
@@ -149,7 +149,7 @@ describe('Auth Controller', () => {
 
       await authController.forgotPassword(req, res);
       expect(otpStore.generateOTP).toHaveBeenCalledWith('u@x.com');
-      expect(sendOTPEmail).toHaveBeenCalledWith('u@x.com', '***REMOVED***56');
+      expect(sendOTPEmail).toHaveBeenCalledWith('u@x.com', '123456');
       expect(res.render).toHaveBeenCalledWith('auth/reset-password', expect.objectContaining({
         email: 'u@x.com',
         success: 'OTP sent to your email!'
@@ -180,7 +180,7 @@ describe('Auth Controller', () => {
     });
 
     it('updates password and renders login', async () => {
-      const req = mockReq({ email: 'u@x.com', otp: '***REMOVED***56', password: 'pass', confirmPassword: 'pass' });
+      const req = mockReq({ email: 'u@x.com', otp: '123456', password: 'pass', confirmPassword: 'pass' });
       const res = mockRes();
       otpStore.verifyOTP.mockReturnValueOnce(true);
       mockHash.mockResolvedValueOnce('newhash');

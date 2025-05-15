@@ -1,5 +1,5 @@
 
-CREATE DATABASE IF NOT EXISTS ***REMOVED***;
+CREATE DATABASE IF NOT EXISTS govt_docs;
 
 -
 DROP TABLE IF EXISTS audit_logs, document_shares, documents, users CASCADE;
