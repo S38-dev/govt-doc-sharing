@@ -8,6 +8,7 @@ const methodOverride = require('method-override');
 const app = express();
 const PORT = process.env.PORT || 4000;
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
