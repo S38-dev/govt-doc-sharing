@@ -1,12 +1,12 @@
-// tests/userController.test.js
 
-// Shared mocks
+
+
 const mockQuery = jest.fn();
 const mockCompare = jest.spyOn(require('bcryptjs'), 'compare');
 const mockHash = jest.spyOn(require('bcryptjs'), 'hash');
 const mockSendOTPEmail = jest.spyOn(require('../services/emailService'), 'sendOTPEmail');
 
-// Mock db and services before import
+
 jest.mock('../config/db', () => ({ db: { query: mockQuery } }));
 
 const { db } = require('../config/db');

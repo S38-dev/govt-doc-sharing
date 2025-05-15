@@ -17,7 +17,7 @@ const { db } = require('../config/db');           // db.query === mockQuery
 const emailService = require('../services/emailService');
 const documentController = require('../controllers/documentController');
 
-// Helper factories
+
 const mockReq = (overrides = {}) => ({
   user: { id: 1, name: 'Test User' },
   file: { filename: 'test.pdf' },
