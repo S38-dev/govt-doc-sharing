@@ -58,6 +58,33 @@ A secure web-based document management system built with **Node.js**, **Express*
 
 -----
 
+
+
+
+### Project Installation
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/S38-dev/govy_docs_project.git govt_doc_project
+
+    cd govt_doc_project
+
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3.  **Create uploads directory:**
+
+    ```bash
+    mkdir -p public/uploads
+    ```
+
+-----
 ## ⚙️ Setup and Installation
 
 ### Prerequisites
@@ -96,32 +123,6 @@ DB_PASSWORD=your_db_password
 DB_NAME=govt_docs
 ```
 
-**Note:** For `EMAIL_PASSWORD`, it is highly recommended to use an App Password for Gmail if you have 2-Factor Authentication enabled.
-
-### Project Installation
-
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/S38-dev/govy_docs_project.git govt_doc_project
-
-    cd govt_doc_project
-
-    ```
-
-2.  **Install dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Create uploads directory:**
-
-    ```bash
-    mkdir -p public/uploads
-    ```
-
------
 
 ## ▶️ Running the Server
 
