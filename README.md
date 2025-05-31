@@ -66,7 +66,7 @@ A secure web-based document management system built with **Node.js**, **Express*
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/S38-dev/govt_docs_project.git govt_doc_project
+    git clone https://github.com/S38-dev/new-govt-doc-updated.git govt_doc_project
 
     cd govt_doc_project
 
