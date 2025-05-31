@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const logger = require('../config/logger');
 
 // Configure storage for uploaded files
 const storage = multer.diskStorage({
@@ -9,6 +10,7 @@ const storage = multer.diskStorage({
     
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
+      logger.info(`Creating upload directory: ${uploadDir}`);
       fs.mkdirSync(uploadDir, { recursive: true });
     }
     
@@ -16,7 +18,9 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    const filename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
+    logger.debug(`Generating filename for upload: ${filename}`);
+    cb(null, filename);
   }
 });
 
@@ -31,8 +35,10 @@ const fileFilter = (req, file, cb) => {
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
+    logger.info(`File type allowed for upload: ${file.mimetype}`);
     cb(null, true);
   } else {
+    logger.warn(`Invalid file type attempted for upload: ${file.mimetype}`);
     cb(new Error('Invalid file type. Only PDF, JPEG, PNG, and Word documents are allowed!'), false);
   }
 };

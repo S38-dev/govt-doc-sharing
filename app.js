@@ -8,7 +8,11 @@ const methodOverride = require('method-override');
 const app = express();
 const PORT = process.env.PORT || 4000;
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const logger = require('./config/logger');
+const morgan = require('morgan');
+
+// Morgan for HTTP request logging
+app.use(morgan('combined', { stream: { write: message => logger.http(message.trim()) } }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -25,7 +29,7 @@ app.use(async (req, res, next) => {
       req.user = user.rows[0] || null;
     }
   } catch (err) {
-    console.error('Auth check error:', err);
+    logger.error('Auth check error:', err);
   }
   next();
 });
@@ -40,18 +44,18 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(methodOverride('_method'));
 routes(app);
 
-app.get('/', (req, res) => res.render('home'));
+app.get('/', (req, res) => logger.info('Home page accessed') && res.render('home'));
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
 connectDB()
   .then(() => {
-    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+    app.listen(PORT, () => logger.info(` Server running on http://localhost:${PORT}`));
   })
   .catch(err => {
-    console.error('🔥 Failed to start server:', err);
+    logger.error('Failed to start server:', err);
     process.exit(1);
   });

@@ -18,7 +18,7 @@ transporter.verify((error) => {
   }
 });
 
-exports.sendShareNotification = async (senderName, recipientEmail, documentTitle, permissions, documentPath) => {
+exports.sendShareNotification = async (senderName, recipientEmail, documentTitle, documentPath) => {
   try {
     await fs.promises.access(documentPath, fs.constants.R_OK);
 
@@ -31,7 +31,6 @@ exports.sendShareNotification = async (senderName, recipientEmail, documentTitle
         <p><strong>${senderName}</strong> has shared a document with you:</p>
         <ul>
           <li><strong>Document Title:</strong> ${documentTitle}</li>
-          <li><strong>Permissions:</strong> ${Array.isArray(permissions) ? permissions.join(', ') : permissions}</li>
         </ul>
         <p>The document is attached to this email.</p>
       `,

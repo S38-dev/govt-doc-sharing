@@ -103,7 +103,7 @@ describe('Document Controller', () => {
 
       mockQuery
         .mockResolvedValueOnce({ rows: [{ id: 1, title: 'Doc1', description: 'Desc', file_path: '/uploads/test.pdf', document_type: 'pdf', created_at: new Date() }] })
-        .mockResolvedValueOnce({ rows: [{ id: 1, permissions: ['read'], expiry_date: null, shared_with_email: 'a@b.com' }] });
+        .mockResolvedValueOnce({ rows: [{ id: 1, expiry_date: null, shared_with_email: 'a@b.com' }] });
 
       await documentController.showSharePage(req, res);
       expect(res.render).toHaveBeenCalledWith('documents/share', expect.objectContaining({
@@ -127,7 +127,7 @@ describe('Document Controller', () => {
 
   describe('handleShare', () => {
     it('inserts share, sends email, and redirects', async () => {
-      const req = mockReq({ body: { document_id: '1', shared_with: 'a@b.com', permissions: 'read', expiry_date: null } });
+      const req = mockReq({ body: { document_id: '1', shared_with: 'a@b.com', expiry_date: null } });
       const res = mockRes();
 
       mockQuery
@@ -142,7 +142,7 @@ describe('Document Controller', () => {
     });
 
     it('renders share page with error when user not found', async () => {
-      const req = mockReq({ body: { document_id: '1', shared_with: 'x@y.com', permissions: 'read', expiry_date: null } });
+      const req = mockReq({ body: { document_id: '1', shared_with: 'x@y.com', expiry_date: null } });
       const res = mockRes();
 
       mockQuery

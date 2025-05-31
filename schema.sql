@@ -1,7 +1,6 @@
 
-CREATE DATABASE IF NOT EXISTS govt_docs;
 
--
+
 DROP TABLE IF EXISTS audit_logs, document_shares, documents, users CASCADE;
 
 -- Users Table
@@ -32,11 +31,8 @@ CREATE TABLE document_shares (
     id SERIAL PRIMARY KEY,
     document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     shared_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    shared_with INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    permissions JSONB NOT NULL DEFAULT '{"read": true, "write": false, "share": false}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expiry_date TIMESTAMP,
-    CHECK (shared_by <> shared_with)
+    shared_email VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Audit Logs Table
