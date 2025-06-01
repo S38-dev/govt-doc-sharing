@@ -1,21 +1,21 @@
-# 📄 Document Management & Sharing System
+#  Document Management & Sharing System
 
 A secure web-based document management system built with **Node.js**, **Express**, and **PostgreSQL**, allowing users to upload, share, and manage documents with email notifications.
 
 -----
 
-## ✨ Features
+##  Features
 
-  - 🗂️ Upload and manage documents with metadata (title, description, type)
-  - 📤 Share documents via email (with notifications)
-  - 🔐 User authentication and password change functionality
-  - 🔄 OTP-based verification for sensitive actions
-  - 👤 Profile view and update
-  - 🗑️ Secure document deletion and access control
+  -  Upload and manage documents with metadata (title, description, type)
+  -  Share documents via email (with notifications)
+  -  User authentication and password change functionality
+  -  OTP-based verification for sensitive actions
+  -  Profile view and update
+  - 🗑 Secure document deletion and access control
 
 -----
 
-## 🧰 Tech Stack
+##  Tech Stack
 
 | Tech            | Role                                 |
 |-----------------|--------------------------------------|
@@ -29,7 +29,7 @@ A secure web-based document management system built with **Node.js**, **Express*
 
 -----
 
-## 📁 Folder Structure
+##  Folder Structure
 
 ```
 ├── controllers/
@@ -85,7 +85,7 @@ A secure web-based document management system built with **Node.js**, **Express*
     ```
 
 -----
-## ⚙️ Setup and Installation
+## ⚙ Setup and Installation
 
 ### Prerequisites
 
@@ -124,7 +124,7 @@ DB_NAME=govt_docs
 ```
 
 
-## ▶️ Running the Server
+##  Running the Server
 
 To start the development server:
 
@@ -136,7 +136,7 @@ The application will typically run on `http://localhost:4000` (or the port speci
 
 -----
 
-## 🧪 Testing
+##  Testing
 
 To run the tests for the application, use the following commands:
 
