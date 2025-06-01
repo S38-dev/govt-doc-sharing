@@ -114,7 +114,7 @@ Create a `.env` file in the root directory of your project and add the following
 ```
 JWT_SECRET=your_jwt_secret_key
 EMAIL_USER=Your_gmail_address
-EMAIL_PASSWORD=your_gmail_app_password # Or your actual Gmail password if not using app passwords (less secure)
+EMAIL_PASSWORD=your_gmail_app_password 
 APP_URL=http://localhost:4000
 
 DB_HOST=localhost
